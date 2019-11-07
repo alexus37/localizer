@@ -1,3 +1,26 @@
+const circleSymbol = {
+  "type": "simple-fill",
+  "color": [226, 119, 40, 0.05],
+  "outline": {
+    color: [255, 255, 255],
+    width: 1
+  }
+};
+
+const targetSymbol = {
+  "type": "simple-fill",
+  "color": [126, 19, 240, 0.25],
+  "outline": {
+    color: [255, 255, 255],
+    width: 2
+  }
+};
+
+const markerSymbol = {
+  type: "simple-marker",
+  style: "x"
+};
+
 define(function (require, exports, module) {
   function Localizer(
     Map,
@@ -7,32 +30,14 @@ define(function (require, exports, module) {
     geometryEngine,
     distanceFunction,
     TARGET) {
-    const circleSymbol = {
-      "type": "simple-fill",
-      "color": [226, 119, 40, 0.05],
-      "outline": {
-        color: [255, 255, 255],
-        width: 1
-      }
-    };
-
-    const targetSymbol = {
-      "type": "simple-fill",
-      "color": [126, 19, 240, 0.25],
-      "outline": {
-        color: [255, 255, 255],
-        width: 2
-      }
-    };
-
-    const markerSymbol = {
-      type: "simple-marker",
-      style: "x"
-    };
 
     let pointGraphic = null;
     let targetArea = null;
     let targetAreaGraphic = null;
+    const automatedBtn = document.getElementById("automated");
+    const ringsBtn = document.getElementById("rings");
+    let ringsShown = true;
+    let automateSearchRunning = false;
     const rings = [];
 
     const view = new MapView({
@@ -64,9 +69,10 @@ define(function (require, exports, module) {
         "symbol": circleSymbol
       });
 
-      rings.push(donut);
-
-      view.graphics.add(circleGraphic);
+      rings.push(circleGraphic);
+      if(ringsShown) {
+        view.graphics.add(circleGraphic);
+      }
       if (!targetArea) {
         targetArea = donut;
         targetAreaGraphic = new Graphic({
@@ -100,7 +106,45 @@ define(function (require, exports, module) {
       createRing(e.mapPoint, radius);
     }
 
+    const automateSearchFn = () => {
+      const { center } = view;
+      const randomLat = (Math.random() / 10) * (Math.random() < 0.5 ? 1 : -1);
+      const randomLong = (Math.random() / 10) * (Math.random() < 0.5 ? 1 : -1);
+      center.latitude += randomLat;
+      center.longitude += randomLong;
+      const radius = distanceFunction(center.latitude, center.longitude);
+      createRing(center, radius);
+      if(automateSearchRunning) {
+        setTimeout(automateSearchFn, 1000);
+      }
+    };
+
     view.on('click', clickHandler);
+    view.ui.add("uiDiv", "top-right");
+    view.when(() => {
+      automatedBtn.addEventListener("click", function() {
+        if(automateSearchRunning) {
+          automatedBtn.innerHTML = 'start';
+          automateSearchRunning = false;
+        } else {
+          automatedBtn.innerHTML = 'stop';
+          automateSearchRunning = true;
+          automateSearchFn();
+        }
+      });
+
+      ringsBtn.addEventListener("click", function() {
+        if(ringsShown) {
+          ringsBtn.innerHTML = 'Show Rings';
+          ringsShown = false;
+          view.graphics.removeMany(rings);
+        } else {
+          ringsBtn.innerHTML = 'Hide Rings';
+          ringsShown = true;
+          view.graphics.addMany(rings);
+        }
+      });
+    })
   }
 
   module.exports.Localizer = Localizer;

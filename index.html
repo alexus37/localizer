@@ -13,10 +13,26 @@
         height: 100%;
         width: 100%;
       }
+      #uiDiv {
+        padding: 10px;
+        max-width: 200px;
+        background-color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1em;
+      }
     </style>
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="uiDiv" class="esri-widget">
+      <p>Automated Running</p>
+      <button id="automated" class="esri-button">
+        Start
+      </button>
+      <br />
+      <button id="rings" class="esri-button">
+          show Rings
+        </button>
+    </div>
   </body>
   <script src="index.js"></script>
 </html>
